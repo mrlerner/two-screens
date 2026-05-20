@@ -1952,6 +1952,7 @@
 
 
 
+
 <!-- loaded-shim -->
 <style>
 /* loaded-shim: replicate legacy CMS runtime behavior (mark images/items "loaded", run grid layout) */
@@ -2016,30 +2017,32 @@ document.querySelectorAll('.blog-item, article.hentry, .summary-item, .preFlex')
 document.documentElement.setAttribute('data-animation-state','booted');
 document.body && document.body.setAttribute('data-animation-state','booted');
 // Mobile burger menu toggle — legacy CMS JS normally handles this.
-// We bypass the CSS cascade entirely by setting styles directly on the menu element.
-var burger = document.querySelector('.header-burger-btn, button.burger');
-var menu = document.querySelector('.header-menu');
+// The page has multiple burger buttons (sticky vs non-sticky header) and may
+// have multiple menu containers; handle all of them.
+var STYLE_PROPS = ['opacity','visibility','pointer-events','transition','background','z-index','overflow-y'];
 function setMenu(open){
   document.body.classList.toggle('header--menu-open', open);
-  if (!menu) return;
-  if (open) {
-    menu.style.setProperty('opacity','1','important');
-    menu.style.setProperty('visibility','visible','important');
-    menu.style.setProperty('pointer-events','auto','important');
-    menu.style.setProperty('transition','none','important');
-    menu.style.setProperty('background','#fff','important');
-    menu.style.setProperty('z-index','1000','important');
-    menu.style.setProperty('overflow-y','auto','important');
-  } else {
-    ['opacity','visibility','pointer-events','transition','background','z-index','overflow-y'].forEach(function(p){menu.style.removeProperty(p);});
-  }
-}
-if (burger) {
-  burger.addEventListener('click', function(e){
-    e.preventDefault();
-    setMenu(!document.body.classList.contains('header--menu-open'));
+  document.querySelectorAll('.header-menu').forEach(function(menu){
+    if (open) {
+      menu.style.setProperty('opacity','1','important');
+      menu.style.setProperty('visibility','visible','important');
+      menu.style.setProperty('pointer-events','auto','important');
+      menu.style.setProperty('transition','none','important');
+      menu.style.setProperty('background','#fff','important');
+      menu.style.setProperty('z-index','1000','important');
+      menu.style.setProperty('overflow-y','auto','important');
+    } else {
+      STYLE_PROPS.forEach(function(p){menu.style.removeProperty(p);});
+    }
   });
 }
+document.querySelectorAll('.header-burger-btn, button.burger').forEach(function(burger){
+  burger.addEventListener('click', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    setMenu(!document.body.classList.contains('header--menu-open'));
+  });
+});
 document.querySelectorAll('.header-menu a').forEach(function(a){
   a.addEventListener('click', function(){ setMenu(false); });
 });
