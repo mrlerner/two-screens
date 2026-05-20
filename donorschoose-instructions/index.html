@@ -2142,6 +2142,10 @@
 
   
 
+
+
+
+
 <!-- loaded-shim -->
 <style>
 /* loaded-shim: replicate legacy CMS runtime behavior (mark images/items "loaded", run grid layout) */
@@ -2185,6 +2189,17 @@ article.hentry,
 .row.sqs-row > .sqs-block { clear: both; width: 100%; }
 .row.sqs-row > .col { float: left; }
 .row.sqs-row::after { content: ""; display: table; clear: both; }
+/* Mobile menu open state — legacy CMS JS normally toggles body.header--menu-open
+   and a matching CSS rule shows the menu. The CSS rule lives in a media query
+   that doesn't match at desktop, so we provide an unconditional override here. */
+body.header--menu-open .header-menu {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  background: #fff;
+  overflow-y: auto;
+}
+body.header--menu-open { overflow: hidden; }
 </style>
 <script>(function(){
 function markImg(i){i.classList.add('loaded');i.removeAttribute('data-load');}
@@ -2194,6 +2209,34 @@ document.querySelectorAll('.blog-item, article.hentry, .summary-item, .preFlex')
 // Mark the body so animation-state-aware CSS treats us as "booted"
 document.documentElement.setAttribute('data-animation-state','booted');
 document.body && document.body.setAttribute('data-animation-state','booted');
+// Mobile burger menu toggle — legacy CMS JS normally handles this.
+// We bypass the CSS cascade entirely by setting styles directly on the menu element.
+var burger = document.querySelector('.header-burger-btn, button.burger');
+var menu = document.querySelector('.header-menu');
+function setMenu(open){
+  document.body.classList.toggle('header--menu-open', open);
+  if (!menu) return;
+  if (open) {
+    menu.style.setProperty('opacity','1','important');
+    menu.style.setProperty('visibility','visible','important');
+    menu.style.setProperty('pointer-events','auto','important');
+    menu.style.setProperty('transition','none','important');
+    menu.style.setProperty('background','#fff','important');
+    menu.style.setProperty('z-index','1000','important');
+    menu.style.setProperty('overflow-y','auto','important');
+  } else {
+    ['opacity','visibility','pointer-events','transition','background','z-index','overflow-y'].forEach(function(p){menu.style.removeProperty(p);});
+  }
+}
+if (burger) {
+  burger.addEventListener('click', function(e){
+    e.preventDefault();
+    setMenu(!document.body.classList.contains('header--menu-open'));
+  });
+}
+document.querySelectorAll('.header-menu a').forEach(function(a){
+  a.addEventListener('click', function(){ setMenu(false); });
+});
 })();</script>
 </body>
 </html>
